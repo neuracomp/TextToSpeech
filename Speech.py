@@ -1,7 +1,7 @@
 import os
 import streamlit as st
 from gtts import gTTS
-import youtube_dl
+import yt_dlp as youtube_dl
 from pydub import AudioSegment
 from google.cloud import speech_v1p1beta1 as speech
 import io
