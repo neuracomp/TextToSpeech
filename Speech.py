@@ -4,6 +4,9 @@ from pydub import AudioSegment
 from pydub.playback import play
 import os
 
+# Ensure ffmpeg is installed and set the path
+AudioSegment.converter = "/usr/bin/ffmpeg"  # Update with the correct path to ffmpeg in your environment
+
 # Function to generate speech using gTTS
 def text_to_speech_gtts(text, lang='en'):
     tts = gTTS(text=text, lang=lang, slow=False)
@@ -12,7 +15,6 @@ def text_to_speech_gtts(text, lang='en'):
 
 # Function to generate speech using pydub
 def text_to_speech_pydub(text):
-    from gtts import gTTS
     tts = gTTS(text=text, lang='en')
     tts.save("output_pydub.mp3")
     sound = AudioSegment.from_mp3("output_pydub.mp3")
