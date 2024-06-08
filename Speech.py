@@ -17,13 +17,17 @@ def download_audio(youtube_url):
                 'preferredquality': '192',
             }],
             'outtmpl': 'downloaded_audio.%(ext)s',
+            'quiet': True,  # Add quiet mode to reduce output clutter
+            'noplaylist': True,  # Ensure only a single video is processed
         }
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([youtube_url])
         return 'downloaded_audio.wav'
+    except youtube_dl.DownloadError as e:
+        st.error(f"DownloadError: {e}")
     except Exception as e:
-        st.error(f"Error downloading audio: {e}")
-        return None
+        st.error(f"Unexpected error: {e}")
+    return None
 
 # Function to transcribe audio using Google Cloud Speech-to-Text
 def transcribe_audio(file_path):
