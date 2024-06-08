@@ -5,3 +5,5 @@ pydub
 google-cloud-speech
 yt-dlp
 pytube
+ffmpeg
+ffprobe
