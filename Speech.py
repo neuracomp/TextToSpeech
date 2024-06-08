@@ -11,11 +11,8 @@ def download_audio(youtube_url):
     try:
         yt = YouTube(youtube_url)
         audio_stream = yt.streams.filter(only_audio=True).first()
-        audio_stream.download(filename='downloaded_audio.mp4')
-        # Convert the downloaded mp4 file to wav format
-        audio = AudioSegment.from_file("downloaded_audio.mp4")
-        audio.export("downloaded_audio.wav", format="wav")
-        return 'downloaded_audio.wav'
+        audio_stream.download(filename='downloaded_audio.mp3')
+        return 'downloaded_audio.mp3'
     except Exception as e:
         st.error(f"Error downloading audio: {e}")
         return None
@@ -29,7 +26,7 @@ def transcribe_audio(file_path):
 
     audio = speech.RecognitionAudio(content=content)
     config = speech.RecognitionConfig(
-        encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+        encoding=speech.RecognitionConfig.AudioEncoding.MP3,
         sample_rate_hertz=16000,
         language_code="en-US",
         enable_automatic_punctuation=True,
@@ -44,7 +41,7 @@ def transcribe_audio(file_path):
 
 # Function to split audio into segments
 def split_audio(audio_path, transcript):
-    audio = AudioSegment.from_wav(audio_path)
+    audio = AudioSegment.from_mp3(audio_path)
     os.makedirs("output_dir", exist_ok=True)
     lines = transcript.splitlines()
 
@@ -52,8 +49,8 @@ def split_audio(audio_path, transcript):
         start_time = i * 10000  # Example: split every 10 seconds
         end_time = (i + 1) * 10000
         audio_segment = audio[start_time:end_time]
-        segment_path = os.path.join("output_dir", f"segment_{i}.wav")
-        audio_segment.export(segment_path, format="wav")
+        segment_path = os.path.join("output_dir", f"segment_{i}.mp3")
+        audio_segment.export(segment_path, format="mp3")
 
         with open(os.path.join("output_dir", "metadata.csv"), "a") as metadata_file:
             metadata_file.write(f"{segment_path}|{line.strip()}\n")
@@ -76,18 +73,18 @@ if st.button("Download Audio"):
         st.success(f"Audio downloaded and saved as {audio_path}")
 
 st.header("Step 2: Upload Downloaded Audio File")
-uploaded_file = st.file_uploader("Upload your downloaded audio file (WAV format)", type="wav")
+uploaded_file = st.file_uploader("Upload your downloaded audio file (MP3 format)", type="mp3")
 if uploaded_file is not None:
-    with open("uploaded_audio.wav", "wb") as f:
+    with open("uploaded_audio.mp3", "wb") as f:
         f.write(uploaded_file.getbuffer())
     st.success("File uploaded successfully")
 
     # Transcribe uploaded audio
-    transcript = transcribe_audio("uploaded_audio.wav")
+    transcript = transcribe_audio("uploaded_audio.mp3")
     st.text_area("Transcript", transcript, height=200)
 
     # Split audio
-    split_audio("uploaded_audio.wav", transcript)
+    split_audio("uploaded_audio.mp3", transcript)
 
     st.header("Step 3: Convert Text to Speech")
     text_input = st.text_area("Enter text to convert to speech:", "Hello, Streamlit!")
@@ -98,6 +95,6 @@ if uploaded_file is not None:
         st.audio(audio_bytes, format="audio/mp3")
         audio_file.close()
         os.remove(output_file)
-        os.remove("uploaded_audio.wav")
-        os.remove("downloaded_audio.mp4")
+        os.remove("uploaded_audio.mp3")
+        os.remove("downloaded_audio.mp3")
         os.rmdir("output_dir")
