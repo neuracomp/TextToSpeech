@@ -1,4 +1,4 @@
 streamlit
 gtts
 pyttsx3
-
+pydub
