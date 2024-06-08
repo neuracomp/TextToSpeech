@@ -2,3 +2,4 @@ streamlit
 gtts
 pyttsx3
 boto3
+botocore
