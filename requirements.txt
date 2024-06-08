@@ -3,3 +3,4 @@ gtts
 youtube-dl
 pydub
 google-cloud-speech
+yt-dlp
