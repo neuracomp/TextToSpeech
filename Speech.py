@@ -68,23 +68,36 @@ def text_to_speech_gtts(text, lang='en'):
 # Streamlit app layout
 st.title("Custom Text to Speech App")
 
-text_input = st.text_area("Enter text to convert to speech:", "Hello, Streamlit!")
+st.header("Step 1: Download Audio from YouTube")
 youtube_url = st.text_input("Enter YouTube URL for voice training:")
-
-if st.button("Convert"):
+if st.button("Download Audio"):
     audio_path = download_audio(youtube_url)
     if audio_path:
-        transcript = transcribe_audio(audio_path)
-        split_audio(audio_path, transcript)
+        st.success(f"Audio downloaded and saved as {audio_path}")
 
-        # Here, you would normally train the TTS model, but this step is skipped for simplicity
+st.header("Step 2: Upload Downloaded Audio File")
+uploaded_file = st.file_uploader("Upload your downloaded audio file (WAV format)", type="wav")
+if uploaded_file is not None:
+    with open("uploaded_audio.wav", "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    st.success("File uploaded successfully")
 
+    # Transcribe uploaded audio
+    transcript = transcribe_audio("uploaded_audio.wav")
+    st.text_area("Transcript", transcript, height=200)
+
+    # Split audio
+    split_audio("uploaded_audio.wav", transcript)
+
+    st.header("Step 3: Convert Text to Speech")
+    text_input = st.text_area("Enter text to convert to speech:", "Hello, Streamlit!")
+    if st.button("Convert Text to Speech"):
         output_file = text_to_speech_gtts(text_input)
         audio_file = open(output_file, "rb")
         audio_bytes = audio_file.read()
         st.audio(audio_bytes, format="audio/mp3")
         audio_file.close()
         os.remove(output_file)
-        os.remove(audio_path)
+        os.remove("uploaded_audio.wav")
         os.remove("downloaded_audio.mp4")
         os.rmdir("output_dir")
