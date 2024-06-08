@@ -1,33 +1,24 @@
 import os
 import streamlit as st
 from gtts import gTTS
-import yt_dlp as youtube_dl
+from pytube import YouTube
 from pydub import AudioSegment
 from google.cloud import speech_v1p1beta1 as speech
 import io
 
-# Function to download audio from YouTube with error handling
+# Function to download audio from YouTube with pytube
 def download_audio(youtube_url):
     try:
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'wav',
-                'preferredquality': '192',
-            }],
-            'outtmpl': 'downloaded_audio.%(ext)s',
-            'quiet': True,  # Add quiet mode to reduce output clutter
-            'noplaylist': True,  # Ensure only a single video is processed
-        }
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([youtube_url])
+        yt = YouTube(youtube_url)
+        audio_stream = yt.streams.filter(only_audio=True).first()
+        audio_stream.download(filename='downloaded_audio.mp4')
+        # Convert the downloaded mp4 file to wav format
+        audio = AudioSegment.from_file("downloaded_audio.mp4")
+        audio.export("downloaded_audio.wav", format="wav")
         return 'downloaded_audio.wav'
-    except youtube_dl.DownloadError as e:
-        st.error(f"DownloadError: {e}")
     except Exception as e:
-        st.error(f"Unexpected error: {e}")
-    return None
+        st.error(f"Error downloading audio: {e}")
+        return None
 
 # Function to transcribe audio using Google Cloud Speech-to-Text
 def transcribe_audio(file_path):
@@ -95,4 +86,5 @@ if st.button("Convert"):
         audio_file.close()
         os.remove(output_file)
         os.remove(audio_path)
+        os.remove("downloaded_audio.mp4")
         os.rmdir("output_dir")
