@@ -6,20 +6,24 @@ from pydub import AudioSegment
 from google.cloud import speech_v1p1beta1 as speech
 import io
 
-# Function to download audio from YouTube
+# Function to download audio from YouTube with error handling
 def download_audio(youtube_url):
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'wav',
-            'preferredquality': '192',
-        }],
-        'outtmpl': 'downloaded_audio.%(ext)s',
-    }
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([youtube_url])
-    return 'downloaded_audio.wav'
+    try:
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'wav',
+                'preferredquality': '192',
+            }],
+            'outtmpl': 'downloaded_audio.%(ext)s',
+        }
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([youtube_url])
+        return 'downloaded_audio.wav'
+    except Exception as e:
+        st.error(f"Error downloading audio: {e}")
+        return None
 
 # Function to transcribe audio using Google Cloud Speech-to-Text
 def transcribe_audio(file_path):
@@ -74,16 +78,17 @@ youtube_url = st.text_input("Enter YouTube URL for voice training:")
 
 if st.button("Convert"):
     audio_path = download_audio(youtube_url)
-    transcript = transcribe_audio(audio_path)
-    split_audio(audio_path, transcript)
+    if audio_path:
+        transcript = transcribe_audio(audio_path)
+        split_audio(audio_path, transcript)
 
-    # Here, you would normally train the TTS model, but this step is skipped for simplicity
+        # Here, you would normally train the TTS model, but this step is skipped for simplicity
 
-    output_file = text_to_speech_gtts(text_input)
-    audio_file = open(output_file, "rb")
-    audio_bytes = audio_file.read()
-    st.audio(audio_bytes, format="audio/mp3")
-    audio_file.close()
-    os.remove(output_file)
-    os.remove(audio_path)
-    os.rmdir("output_dir")
+        output_file = text_to_speech_gtts(text_input)
+        audio_file = open(output_file, "rb")
+        audio_bytes = audio_file.read()
+        st.audio(audio_bytes, format="audio/mp3")
+        audio_file.close()
+        os.remove(output_file)
+        os.remove(audio_path)
+        os.rmdir("output_dir")
