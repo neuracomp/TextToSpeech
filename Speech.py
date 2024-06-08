@@ -50,17 +50,22 @@ elif tts_engine == "pyttsx3":
     voice_options = {voice.name: voice.id for voice in voices}
     voice_name = st.selectbox("Select voice:", list(voice_options.keys()))
 elif tts_engine == "Amazon Polly":
-    polly_client = boto3.Session().client('polly')
-    voices = polly_client.describe_voices()
-    voice_options = {voice['Name']: voice['Id'] for voice in voices['Voices']}
-    voice_name = st.selectbox("Select voice:", list(voice_options.keys()))
+    try:
+        polly_client = boto3.Session().client('polly')
+        voices = polly_client.describe_voices()
+        voice_options = {voice['Name']: voice['Id'] for voice in voices['Voices']}
+        voice_name = st.selectbox("Select voice:", list(voice_options.keys()))
+    except (BotoCoreError, ClientError) as error:
+        st.error(f"Could not fetch Polly voices: {error}")
+        voice_options = {}
+        voice_name = None
 
 if st.button("Convert"):
     if tts_engine == "gTTS":
         output_file = text_to_speech_gtts(text, language)
     elif tts_engine == "pyttsx3":
-        output_file = text_to_speech_pyttsx3(text, voice_options[voice_name])
-    elif tts_engine == "Amazon Polly":
+        output_file = text_to_speech_pyttsx3(text, voice_options.get(voice_name))
+    elif tts_engine == "Amazon Polly" and voice_name:
         output_file = text_to_speech_polly(text, voice_options[voice_name])
 
     if output_file:
