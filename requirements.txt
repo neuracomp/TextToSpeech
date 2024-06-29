@@ -7,3 +7,4 @@ yt-dlp
 pytube
 ffmpeg
 ffprobe
+pyttsx3
